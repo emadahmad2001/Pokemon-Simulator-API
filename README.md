@@ -14,7 +14,7 @@ This is a simple Pokémon battle game implemented in Python. Players choose thei
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/pokemon-battle-game.git
+    git clone https://github.com/emadahmad2001/pokemon-battle-game.git
     cd pokemon-battle-game
     ```
 
