@@ -1,96 +1,112 @@
 # Pokemon Battle Simulator
 
-A Python-based Pokemon battle simulator that allows you to experience turn-based Pokemon battles in the terminal. This project simulates Pokemon battles with various moves, types, and status effects.
+A full-stack Pokemon battle simulator with a Python backend and React frontend. Battle against AI opponents using your favorite Pokemon!
 
 ## Features
 
-- Turn-based battle system
-- Multiple Pokemon types with type advantages
-- Various moves with different effects
-- Status effects (Poison, Burn, Sleep, etc.)
-- HP and PP management
-- Battle statistics tracking
-- Pokemon selection system
-- Random opponent selection
-
-## Installation
-
-1. Clone the repository:
-
-    ```bash
-    git clone https://github.com/emadahmad2001/pokemon-battle-simulator.git
-    cd pokemon-battle-simulator
-    ```
-
-2. Create a virtual environment (recommended):
-
-    ```bash
-    python -m venv venv
-    # On Windows
-    venv\Scripts\activate
-    # On Unix or MacOS
-    source venv/bin/activate
-    ```
-
-3. Install dependencies:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-## How to Run
-
-1. Make sure you have activated your virtual environment (if you created one)
-2. Run the game:
-
-    ```bash
-    python -m src.main
-    ```
+- Turn-based Pokemon battles
+- Multiple Pokemon selection
+- Type-based damage calculation
+- Modern, responsive UI with animations
+- Real-time battle updates
+- Health bars and move selection interface
 
 ## Project Structure
 
 ```
 Pokemon-Simulator-API/
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── models.py
-│   ├── battle.py
-│   └── data.py
-├── requirements.txt
-└── README.md
+├── main.py              # Backend battle logic
+├── data.py             # Pokemon data and moves
+├── frontend/           # React frontend application
+│   ├── src/
+│   │   ├── components/ # React components
+│   │   ├── types/      # TypeScript type definitions
+│   │   └── App.tsx     # Main application component
+│   └── package.json    # Frontend dependencies
+└── requirements.txt    # Backend dependencies
 ```
 
-## Game Features
+## Setup
 
-### Battle System
-- Turn-based combat based on Pokemon speed
-- 4 moves per Pokemon with PP (Power Points) management
-- Damage calculation based on Pokemon stats
-- Simple AI for the opponent
+### Backend Setup
 
-### Available Pokemon
-- Charmander (Fire type)
-- Squirtle (Water type)
-- Bulbasaur (Grass type)
-- Pikachu (Electric type)
-- Eevee (Normal type)
+1. Create a virtual environment (recommended):
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-### Available Moves
-- Normal: Tackle, Scratch
-- Fire: Ember, Flame Burst
-- Water: Water Gun, Bubble Beam
-- Grass: Vine Whip, Razor Leaf
-- Electric: Thunder Shock, Thunderbolt
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-## Game Controls
+3. Run the backend:
+```bash
+python main.py
+```
 
-1. Select your Pokemon by entering its number
-2. During battle:
-   - Use number keys (1-4) to select moves
-   - Press '0' to quit the game
-   - Follow on-screen prompts for battle actions
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+## How to Play
+
+1. Start the application and you'll see the Pokemon selection screen
+2. Choose your Pokemon from the available options
+3. Enter battle against an AI opponent
+4. Select moves during your turn
+5. Watch the battle unfold with animations and health updates
+6. Win or lose, you can start a new battle!
+
+## Available Pokemon
+
+Currently implemented Pokemon:
+- Charmander (Fire)
+- Squirtle (Water)
+
+More Pokemon will be added in future updates!
+
+## Development
+
+### Adding New Pokemon
+
+To add new Pokemon, update the `data.py` file with the Pokemon's stats and moves.
+
+### Adding New Features
+
+1. Backend changes:
+   - Modify `main.py` for battle logic
+   - Update `data.py` for Pokemon data
+
+2. Frontend changes:
+   - Add new components in `frontend/src/components/`
+   - Update types in `frontend/src/types/`
+   - Modify `App.tsx` for game logic
 
 ## Contributing
 
-Feel free to submit issues and enhancement requests!
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
