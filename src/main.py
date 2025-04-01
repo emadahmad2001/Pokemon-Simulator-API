@@ -1,11 +1,33 @@
 from .battle import Battle
-from .data import create_sample_pokemon
+from .data import get_available_pokemon, get_pokemon_by_name, get_random_pokemon
+
+def display_pokemon_selection():
+    print("\nAvailable Pokemon:")
+    for i, pokemon in enumerate(get_available_pokemon(), 1):
+        print(f"{i}. {pokemon.capitalize()}")
+    
+    while True:
+        try:
+            choice = int(input("\nSelect your Pokemon (enter number): "))
+            if 1 <= choice <= len(get_available_pokemon()):
+                pokemon_name = get_available_pokemon()[choice - 1]
+                return get_pokemon_by_name(pokemon_name)
+            print("Please enter a valid number!")
+        except ValueError:
+            print("Please enter a number!")
 
 def main():
     print("Welcome to Pokemon Battle Simulator!")
-    print("Let's start a battle between Charmander and Squirtle!")
     
-    player_pokemon, opponent_pokemon = create_sample_pokemon()
+    # Player selects their Pokemon
+    player_pokemon = display_pokemon_selection()
+    print(f"\nYou chose {player_pokemon.name}!")
+    
+    # Opponent gets a random Pokemon
+    opponent_pokemon = get_random_pokemon()
+    print(f"Your opponent has {opponent_pokemon.name}!")
+    
+    # Start the battle
     battle = Battle(player_pokemon, opponent_pokemon)
     
     while True:

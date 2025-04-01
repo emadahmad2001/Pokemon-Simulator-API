@@ -10,6 +10,8 @@ A Python-based Pokemon battle simulator that allows you to experience turn-based
 - Status effects (Poison, Burn, Sleep, etc.)
 - HP and PP management
 - Battle statistics tracking
+- Pokemon selection system
+- Random opponent selection
 
 ## Installation
 
@@ -67,21 +69,27 @@ Pokemon-Simulator-API/
 - Damage calculation based on Pokemon stats
 - Simple AI for the opponent
 
-### Current Pokemon
+### Available Pokemon
 - Charmander (Fire type)
 - Squirtle (Water type)
+- Bulbasaur (Grass type)
+- Pikachu (Electric type)
+- Eevee (Normal type)
 
 ### Available Moves
-- Tackle (Normal type)
-- Scratch (Normal type)
-- Ember (Fire type)
-- Water Gun (Water type)
+- Normal: Tackle, Scratch
+- Fire: Ember, Flame Burst
+- Water: Water Gun, Bubble Beam
+- Grass: Vine Whip, Razor Leaf
+- Electric: Thunder Shock, Thunderbolt
 
 ## Game Controls
 
-- Use number keys (1-4) to select moves
-- Press '0' to quit the game
-- Follow on-screen prompts for battle actions
+1. Select your Pokemon by entering its number
+2. During battle:
+   - Use number keys (1-4) to select moves
+   - Press '0' to quit the game
+   - Follow on-screen prompts for battle actions
 
 ## Contributing
 
