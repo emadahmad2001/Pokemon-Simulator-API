@@ -1,50 +1,6 @@
+from typing import Optional
+from .models import Pokemon, Move
 import random
-from typing import List, Dict, Optional
-from dataclasses import dataclass
-from enum import Enum
-
-class Type(Enum):
-    NORMAL = "Normal"
-    FIRE = "Fire"
-    WATER = "Water"
-    ELECTRIC = "Electric"
-    GRASS = "Grass"
-    ICE = "Ice"
-    FIGHTING = "Fighting"
-    POISON = "Poison"
-    GROUND = "Ground"
-    FLYING = "Flying"
-    PSYCHIC = "Psychic"
-    BUG = "Bug"
-    ROCK = "Rock"
-    GHOST = "Ghost"
-    DRAGON = "Dragon"
-    DARK = "Dark"
-    STEEL = "Steel"
-    FAIRY = "Fairy"
-
-@dataclass
-class Move:
-    name: str
-    type: Type
-    power: int
-    accuracy: int
-    pp: int
-    description: str
-
-@dataclass
-class Pokemon:
-    name: str
-    level: int
-    hp: int
-    max_hp: int
-    attack: int
-    defense: int
-    speed: int
-    type1: Type
-    type2: Optional[Type] = None
-    moves: List[Move] = None
-    status: Optional[str] = None
 
 class Battle:
     def __init__(self, player_pokemon: Pokemon, opponent_pokemon: Pokemon):
@@ -118,61 +74,4 @@ class Battle:
             return "opponent"
         if self.opponent_pokemon.hp <= 0:
             return "player"
-        return None
-
-def create_sample_pokemon():
-    # Create some sample moves
-    tackle = Move("Tackle", Type.NORMAL, 40, 100, 35, "A basic tackle attack")
-    scratch = Move("Scratch", Type.NORMAL, 40, 100, 35, "A basic scratch attack")
-    ember = Move("Ember", Type.FIRE, 40, 100, 25, "A weak fire attack")
-    water_gun = Move("Water Gun", Type.WATER, 40, 100, 25, "A weak water attack")
-
-    # Create sample Pokemon
-    charmander = Pokemon(
-        name="Charmander",
-        level=5,
-        hp=39,
-        max_hp=39,
-        attack=52,
-        defense=43,
-        speed=65,
-        type1=Type.FIRE,
-        moves=[tackle, scratch, ember, water_gun]
-    )
-
-    squirtle = Pokemon(
-        name="Squirtle",
-        level=5,
-        hp=44,
-        max_hp=44,
-        attack=48,
-        defense=65,
-        speed=43,
-        type1=Type.WATER,
-        moves=[tackle, scratch, water_gun, ember]
-    )
-
-    return charmander, squirtle
-
-def main():
-    print("Welcome to Pokemon Battle Simulator!")
-    print("Let's start a battle between Charmander and Squirtle!")
-    
-    player_pokemon, opponent_pokemon = create_sample_pokemon()
-    battle = Battle(player_pokemon, opponent_pokemon)
-    
-    while True:
-        if not battle.battle_turn():
-            print("\nBattle ended by player!")
-            break
-            
-        winner = battle.check_battle_end()
-        if winner:
-            if winner == "player":
-                print(f"\nCongratulations! {player_pokemon.name} wins!")
-            else:
-                print(f"\n{opponent_pokemon.name} wins!")
-            break
-
-if __name__ == "__main__":
-    main()
+        return None 
