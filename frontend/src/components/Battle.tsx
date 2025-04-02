@@ -1,83 +1,203 @@
-import { useState } from 'react';
 import styled from '@emotion/styled';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, Move } from '../types/pokemon';
 
 const BattleContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
   min-height: 100vh;
+  background: linear-gradient(135deg, #1a237e, #0d47a1);
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/pokeball-pattern.png') repeat;
+    opacity: 0.1;
+    pointer-events: none;
+  }
 `;
 
 const BattleField = styled.div`
+  flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  width: 100%;
-  max-width: 1200px;
-  margin: 2rem 0;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
 `;
 
-const PokemonCard = styled(motion.div)<{ isPlayer: boolean }>`
-  background: rgba(255, 255, 255, 0.9);
+const PokemonContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50%;
+`;
+
+const PokemonCard = styled(motion.div)<{ isOpponent?: boolean }>`
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
-  padding: 1rem;
-  width: 300px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: ${props => props.isPlayer ? 'none' : 'scaleX(-1)'};
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 45%;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  &:hover::before {
+    transform: translateX(100%);
+  }
+`;
+
+const PokemonName = styled.h2`
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 `;
 
 const HealthBar = styled.div`
   width: 100%;
-  height: 20px;
-  background: #ddd;
-  border-radius: 10px;
+  height: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 1rem;
   overflow: hidden;
-  margin: 0.5rem 0;
+  margin: 1rem 0;
+  position: relative;
 `;
 
-const HealthFill = styled(motion.div)<{ percentage: number }>`
-  width: ${props => props.percentage}%;
+const HealthFill = styled(motion.div)<{ health: number }>`
+  width: ${props => props.health}%;
   height: 100%;
-  background: ${props => props.percentage > 50 ? '#4CAF50' : props.percentage > 20 ? '#FFC107' : '#F44336'};
-  transition: width 0.3s ease;
+  background: ${props => {
+    if (props.health > 60) return '#4CAF50';
+    if (props.health > 30) return '#FFC107';
+    return '#F44336';
+  }};
+  border-radius: 1rem;
+  transition: background-color 0.3s ease;
+`;
+
+const HealthText = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+  z-index: 1;
 `;
 
 const MovesContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  margin-top: 2rem;
-  width: 100%;
-  max-width: 600px;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
 `;
 
-const MoveButton = styled(motion.button)`
-  background: white;
-  border: 2px solid #ddd;
-  border-radius: 0.5rem;
+const MoveButton = styled(motion.button)<{ moveType: string }>`
   padding: 1rem;
-  cursor: pointer;
+  border: none;
+  border-radius: 0.5rem;
+  background: ${props => {
+    const colors: { [key: string]: string } = {
+      Fire: '#F08030',
+      Water: '#6890F0',
+      Grass: '#78C850',
+      Electric: '#F8D030',
+      Normal: '#A8A878',
+      Fighting: '#C03028',
+      Poison: '#A040A0',
+      Ground: '#E0C068',
+      Flying: '#A890F0',
+      Psychic: '#F85888',
+      Bug: '#A8B820',
+      Rock: '#B8A038',
+      Ghost: '#705898',
+      Dragon: '#7038F8',
+      Dark: '#705848',
+      Steel: '#B8B8D0',
+      Fairy: '#EE99AC',
+      Ice: '#98D8D8'
+    };
+    return colors[props.moveType] || '#A8A878';
+  }};
+  color: white;
   font-size: 1rem;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 
   &:hover {
-    background: #f0f0f0;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
+`;
+
+const MoveInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.9;
+`;
+
+const BattleMessage = styled(motion.div)`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.2rem;
+  text-align: center;
+  z-index: 2;
+  backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
 `;
 
 interface BattleProps {
   playerPokemon: Pokemon;
   opponentPokemon: Pokemon;
   onMoveSelect: (move: Move) => void;
+  battleMessage: string;
   isPlayerTurn: boolean;
 }
 
@@ -85,74 +205,85 @@ export const Battle: React.FC<BattleProps> = ({
   playerPokemon,
   opponentPokemon,
   onMoveSelect,
+  battleMessage,
   isPlayerTurn
 }) => {
-  const [selectedMove, setSelectedMove] = useState<Move | null>(null);
-
-  const handleMoveClick = (move: Move) => {
-    if (move.pp > 0) {
-      setSelectedMove(move);
-      onMoveSelect(move);
-    }
-  };
-
   return (
     <BattleContainer>
       <BattleField>
-        <PokemonCard
-          isPlayer={true}
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2>{playerPokemon.name}</h2>
-          <HealthBar>
-            <HealthFill
-              percentage={(playerPokemon.hp / playerPokemon.max_hp) * 100}
-              initial={{ width: 0 }}
-              animate={{ width: `${(playerPokemon.hp / playerPokemon.max_hp) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </HealthBar>
-          <p>HP: {playerPokemon.hp}/{playerPokemon.max_hp}</p>
-        </PokemonCard>
+        <PokemonContainer>
+          <PokemonCard
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <PokemonName>{playerPokemon.name}</PokemonName>
+            <HealthBar>
+              <HealthFill
+                health={(playerPokemon.hp / playerPokemon.max_hp) * 100}
+                initial={{ width: 0 }}
+                animate={{ width: `${(playerPokemon.hp / playerPokemon.max_hp) * 100}%` }}
+                transition={{ duration: 0.5 }}
+              />
+              <HealthText>
+                {playerPokemon.hp} / {playerPokemon.max_hp}
+              </HealthText>
+            </HealthBar>
+          </PokemonCard>
 
-        <PokemonCard
-          isPlayer={false}
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2>{opponentPokemon.name}</h2>
-          <HealthBar>
-            <HealthFill
-              percentage={(opponentPokemon.hp / opponentPokemon.max_hp) * 100}
-              initial={{ width: 0 }}
-              animate={{ width: `${(opponentPokemon.hp / opponentPokemon.max_hp) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </HealthBar>
-          <p>HP: {opponentPokemon.hp}/{opponentPokemon.max_hp}</p>
-        </PokemonCard>
-      </BattleField>
+          <PokemonCard
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <PokemonName>{opponentPokemon.name}</PokemonName>
+            <HealthBar>
+              <HealthFill
+                health={(opponentPokemon.hp / opponentPokemon.max_hp) * 100}
+                initial={{ width: 0 }}
+                animate={{ width: `${(opponentPokemon.hp / opponentPokemon.max_hp) * 100}%` }}
+                transition={{ duration: 0.5 }}
+              />
+              <HealthText>
+                {opponentPokemon.hp} / {opponentPokemon.max_hp}
+              </HealthText>
+            </HealthBar>
+          </PokemonCard>
+        </PokemonContainer>
 
-      {isPlayerTurn && (
         <MovesContainer>
           {playerPokemon.moves.map((move, index) => (
             <MoveButton
               key={index}
-              onClick={() => handleMoveClick(move)}
-              disabled={move.pp <= 0}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              type="button"
+              moveType={move.type}
+              onClick={() => onMoveSelect(move)}
+              disabled={!isPlayerTurn || move.pp <= 0}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <h3>{move.name}</h3>
-              <p>PP: {move.pp}</p>
-              <p>{move.description}</p>
+              {move.name}
+              <MoveInfo>
+                <span>PP: {move.pp}</span>
+                <span>Power: {move.power}</span>
+              </MoveInfo>
             </MoveButton>
           ))}
         </MovesContainer>
-      )}
+      </BattleField>
+
+      <AnimatePresence>
+        {battleMessage && (
+          <BattleMessage
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {battleMessage}
+          </BattleMessage>
+        )}
+      </AnimatePresence>
     </BattleContainer>
   );
 }; 
