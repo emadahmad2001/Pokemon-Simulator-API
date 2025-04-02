@@ -13,10 +13,10 @@ A web-based Pokémon battle simulator that lets you battle with your favorite Po
 
 ## Screenshots
 
-### Pokémon Selection Screen
+### Pokémon Results Screen
 ![Pokémon Selection](./screenshots/selection.png)
 
-### Battle Results Screen
+### Battle Selection Screen
 ![Battle Results](./screenshots/results.png)
 
 ## Project Structure
