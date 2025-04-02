@@ -35,8 +35,17 @@ export const App: React.FC = () => {
 
     // Player's turn
     const playerDamage = calculateDamage(selectedPokemon, opponentPokemon, move)
+    const typeMultiplier = getTypeMultiplier(move.type, opponentPokemon.type1, opponentPokemon.type2)
     opponentPokemon.hp -= playerDamage
-    setBattleMessage(`${selectedPokemon.name} used ${move.name}! It dealt ${playerDamage} damage!`)
+    
+    let effectivenessMessage = ''
+    if (typeMultiplier > 1) {
+      effectivenessMessage = "It's super effective!"
+    } else if (typeMultiplier < 1) {
+      effectivenessMessage = "It's not very effective..."
+    }
+    
+    setBattleMessage(`${selectedPokemon.name} used ${move.name}! It dealt ${playerDamage} damage! ${effectivenessMessage}`)
 
     // Check if opponent is defeated
     if (opponentPokemon.hp <= 0) {
@@ -50,8 +59,17 @@ export const App: React.FC = () => {
     setTimeout(() => {
       const opponentMove = opponentPokemon.moves[Math.floor(Math.random() * opponentPokemon.moves.length)]
       const opponentDamage = calculateDamage(opponentPokemon, selectedPokemon, opponentMove)
+      const opponentTypeMultiplier = getTypeMultiplier(opponentMove.type, selectedPokemon.type1, selectedPokemon.type2)
       selectedPokemon.hp -= opponentDamage
-      setBattleMessage(`${opponentPokemon.name} used ${opponentMove.name}! It dealt ${opponentDamage} damage!`)
+      
+      let opponentEffectivenessMessage = ''
+      if (opponentTypeMultiplier > 1) {
+        opponentEffectivenessMessage = "It's super effective!"
+      } else if (opponentTypeMultiplier < 1) {
+        opponentEffectivenessMessage = "It's not very effective..."
+      }
+      
+      setBattleMessage(`${opponentPokemon.name} used ${opponentMove.name}! It dealt ${opponentDamage} damage! ${opponentEffectivenessMessage}`)
 
       // Check if player is defeated
       if (selectedPokemon.hp <= 0) {

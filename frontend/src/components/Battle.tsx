@@ -177,20 +177,15 @@ const MoveInfo = styled.div`
   opacity: 0.9;
 `;
 
-const BattleMessage = styled(motion.div)`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 0.5rem;
+const BattleMessage = styled.div<{ isEffectiveness?: boolean }>`
   font-size: 1.2rem;
-  text-align: center;
-  z-index: 2;
-  backdrop-filter: blur(5px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  color: ${props => props.isEffectiveness ? '#ffd700' : 'white'};
+  text-shadow: ${props => props.isEffectiveness ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none'};
+  font-weight: ${props => props.isEffectiveness ? 'bold' : 'normal'};
 `;
 
 interface BattleProps {
@@ -208,6 +203,9 @@ export const Battle: React.FC<BattleProps> = ({
   battleMessage,
   isPlayerTurn
 }) => {
+  const isEffectivenessMessage = battleMessage.includes("It's super effective!") || 
+                                battleMessage.includes("It's not very effective...")
+
   return (
     <BattleContainer>
       <BattleField>
@@ -251,6 +249,10 @@ export const Battle: React.FC<BattleProps> = ({
           </PokemonCard>
         </PokemonContainer>
 
+        <BattleMessage isEffectiveness={isEffectivenessMessage}>
+          {battleMessage}
+        </BattleMessage>
+
         <MovesContainer>
           {playerPokemon.moves.map((move, index) => (
             <MoveButton
@@ -271,19 +273,6 @@ export const Battle: React.FC<BattleProps> = ({
           ))}
         </MovesContainer>
       </BattleField>
-
-      <AnimatePresence>
-        {battleMessage && (
-          <BattleMessage
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {battleMessage}
-          </BattleMessage>
-        )}
-      </AnimatePresence>
     </BattleContainer>
   );
 }; 
