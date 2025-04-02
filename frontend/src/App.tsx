@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styled from '@emotion/styled'
 import { Battle } from './components/Battle'
 import { PokemonSelection } from './components/PokemonSelection'
+import { BattleResults } from './components/BattleResults'
 import { Pokemon, Move, Type } from './types/pokemon'
 import { getRandomPokemon, getPokemonByName } from './data'
 
@@ -11,56 +12,55 @@ const AppContainer = styled.div`
   color: white;
 `
 
-function App() {
+export const App: React.FC = () => {
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null)
   const [opponentPokemon, setOpponentPokemon] = useState<Pokemon | null>(null)
   const [battleMessage, setBattleMessage] = useState<string>('')
-  const [isPlayerTurn, setIsPlayerTurn] = useState(true)
-  const [isBattleOver, setIsBattleOver] = useState(false)
+  const [isPlayerTurn, setIsPlayerTurn] = useState<boolean>(true)
+  const [gameOver, setGameOver] = useState<boolean>(false)
+  const [winner, setWinner] = useState<Pokemon | null>(null)
 
   const handlePokemonSelect = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon)
-    setOpponentPokemon(getRandomPokemon())
-    setBattleMessage(`${pokemon.name} is ready for battle!`)
+    const opponent = getRandomPokemon()
+    setOpponentPokemon(opponent)
+    setBattleMessage(`${pokemon.name} vs ${opponent.name}!`)
     setIsPlayerTurn(true)
-    setIsBattleOver(false)
+    setGameOver(false)
+    setWinner(null)
   }
 
   const handleMoveSelect = (move: Move) => {
     if (!selectedPokemon || !opponentPokemon) return
 
     // Player's turn
-    const damage = calculateDamage(selectedPokemon, opponentPokemon, move)
-    const newOpponentHP = Math.max(0, opponentPokemon.hp - damage)
-    setOpponentPokemon({ ...opponentPokemon, hp: newOpponentHP })
-    setBattleMessage(`${selectedPokemon.name} used ${move.name}! It dealt ${damage} damage!`)
-    move.pp--
+    const playerDamage = calculateDamage(selectedPokemon, opponentPokemon, move)
+    opponentPokemon.hp -= playerDamage
+    setBattleMessage(`${selectedPokemon.name} used ${move.name}! It dealt ${playerDamage} damage!`)
 
     // Check if opponent is defeated
-    if (newOpponentHP === 0) {
-      setBattleMessage(`${opponentPokemon.name} fainted! ${selectedPokemon.name} wins!`)
-      setIsBattleOver(true)
+    if (opponentPokemon.hp <= 0) {
+      opponentPokemon.hp = 0
+      setGameOver(true)
+      setWinner(selectedPokemon)
       return
     }
 
     // Opponent's turn
-    setIsPlayerTurn(false)
     setTimeout(() => {
       const opponentMove = opponentPokemon.moves[Math.floor(Math.random() * opponentPokemon.moves.length)]
       const opponentDamage = calculateDamage(opponentPokemon, selectedPokemon, opponentMove)
-      const newPlayerHP = Math.max(0, selectedPokemon.hp - opponentDamage)
-      setSelectedPokemon({ ...selectedPokemon, hp: newPlayerHP })
+      selectedPokemon.hp -= opponentDamage
       setBattleMessage(`${opponentPokemon.name} used ${opponentMove.name}! It dealt ${opponentDamage} damage!`)
-      opponentMove.pp--
 
       // Check if player is defeated
-      if (newPlayerHP === 0) {
-        setBattleMessage(`${selectedPokemon.name} fainted! ${opponentPokemon.name} wins!`)
-        setIsBattleOver(true)
-        return
+      if (selectedPokemon.hp <= 0) {
+        selectedPokemon.hp = 0
+        setGameOver(true)
+        setWinner(opponentPokemon)
+      } else {
+        setIsPlayerTurn(true)
       }
-
-      setIsPlayerTurn(true)
     }, 1500)
   }
 
@@ -102,7 +102,8 @@ function App() {
     setOpponentPokemon(null)
     setBattleMessage('')
     setIsPlayerTurn(true)
-    setIsBattleOver(false)
+    setGameOver(false)
+    setWinner(null)
   }
 
   return (
@@ -119,6 +120,8 @@ function App() {
           ]}
           onSelect={handlePokemonSelect}
         />
+      ) : gameOver && winner ? (
+        <BattleResults winner={winner} onPlayAgain={handlePlayAgain} />
       ) : selectedPokemon && opponentPokemon ? (
         <Battle
           playerPokemon={selectedPokemon}
