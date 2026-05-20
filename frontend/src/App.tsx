@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import styled from '@emotion/styled'
 import { Battle } from './components/Battle'
 import { PokemonSelection } from './components/PokemonSelection'
 import { BattleResults } from './components/BattleResults'
-import { Pokemon, Move, Type } from './types/pokemon'
+import { Pokemon, Move } from './types/pokemon'
 import { getRandomPokemon, getPokemonByName } from './data'
 
 const AppContainer = styled.div`
@@ -12,121 +12,116 @@ const AppContainer = styled.div`
   color: white;
 `
 
+type GameState = 'selection' | 'battle' | 'results'
+
 export const App: React.FC = () => {
-  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null)
+  const [gameState, setGameState] = useState<GameState>('selection')
+  const [playerPokemon, setPlayerPokemon] = useState<Pokemon | null>(null)
   const [opponentPokemon, setOpponentPokemon] = useState<Pokemon | null>(null)
   const [battleMessage, setBattleMessage] = useState<string>('')
   const [isPlayerTurn, setIsPlayerTurn] = useState<boolean>(true)
-  const [gameOver, setGameOver] = useState<boolean>(false)
   const [winner, setWinner] = useState<Pokemon | null>(null)
 
-  const handlePokemonSelect = (pokemon: Pokemon) => {
-    setSelectedPokemon(pokemon)
+  const handlePokemonSelect = useCallback((pokemon: Pokemon) => {
     const opponent = getRandomPokemon()
+    setPlayerPokemon(pokemon)
     setOpponentPokemon(opponent)
-    setBattleMessage(`${pokemon.name} vs ${opponent.name}!`)
+    setBattleMessage(`${pokemon.name} vs ${opponent.name}! Go!`)
     setIsPlayerTurn(true)
-    setGameOver(false)
     setWinner(null)
+    setGameState('battle')
+  }, [])
+
+  const getTypeMultiplier = (moveType: string, defenderType1: string, defenderType2?: string): number => {
+    const typeChart: { [key: string]: { [key: string]: number } } = {
+      Normal:   { Rock: 0.5, Steel: 0.5, Ghost: 0 },
+      Fire:     { Fire: 0.5, Water: 0.5, Grass: 2, Ice: 2, Bug: 2, Rock: 0.5, Dragon: 0.5, Steel: 2 },
+      Water:    { Fire: 2, Water: 0.5, Grass: 0.5, Ground: 2, Rock: 2, Dragon: 0.5 },
+      Electric: { Water: 2, Grass: 0.5, Electric: 0.5, Ground: 0, Flying: 2, Dragon: 0.5 },
+      Grass:    { Fire: 0.5, Water: 2, Grass: 0.5, Poison: 0.5, Ground: 2, Flying: 0.5, Bug: 0.5, Rock: 2, Dragon: 0.5 },
+      Ice:      { Water: 0.5, Grass: 2, Ice: 0.5, Ground: 2, Flying: 2, Dragon: 2 },
+      Fighting: { Normal: 2, Ice: 2, Poison: 0.5, Flying: 0.5, Psychic: 0.5, Bug: 0.5, Rock: 2, Ghost: 0, Dark: 2, Steel: 2, Fairy: 0.5 },
+      Poison:   { Grass: 2, Poison: 0.5, Ground: 0.5, Rock: 0.5, Ghost: 0.5, Steel: 0, Fairy: 2 },
+      Ground:   { Fire: 2, Electric: 2, Grass: 0.5, Poison: 2, Flying: 0, Bug: 0.5, Rock: 2, Steel: 2 },
+      Flying:   { Electric: 0.5, Grass: 2, Fighting: 2, Bug: 2, Rock: 0.5, Steel: 0.5 },
+      Psychic:  { Fighting: 2, Poison: 2, Psychic: 0.5, Dark: 0, Steel: 0.5 },
+      Bug:      { Fire: 0.5, Grass: 2, Fighting: 0.5, Poison: 0.5, Flying: 0.5, Psychic: 2, Ghost: 0.5, Dark: 2, Steel: 0.5, Fairy: 0.5 },
+      Rock:     { Fire: 2, Ice: 2, Fighting: 0.5, Ground: 0.5, Flying: 2, Bug: 2, Steel: 0.5 },
+      Ghost:    { Normal: 0, Psychic: 2, Ghost: 2, Dark: 0.5 },
+      Dragon:   { Dragon: 2, Steel: 0.5, Fairy: 0 },
+      Dark:     { Fighting: 0.5, Psychic: 2, Ghost: 2, Dark: 0.5, Fairy: 0.5 },
+      Steel:    { Fire: 0.5, Water: 0.5, Electric: 0.5, Ice: 2, Rock: 2, Steel: 0.5, Fairy: 2 },
+      Fairy:    { Fire: 0.5, Fighting: 2, Poison: 0.5, Dragon: 2, Dark: 2, Steel: 0.5 },
+    }
+    const m1 = typeChart[moveType]?.[defenderType1] ?? 1
+    const m2 = defenderType2 ? (typeChart[moveType]?.[defenderType2] ?? 1) : 1
+    return m1 * m2
   }
 
-  const handleMoveSelect = (move: Move) => {
-    if (!selectedPokemon || !opponentPokemon) return
+  const calcDamage = (attacker: Pokemon, defender: Pokemon, move: Move): number => {
+    if (move.power === 0) return 0
+    const base = ((2 * attacker.level / 5 + 2) * move.power * attacker.attack / defender.defense) / 50 + 2
+    const mult = getTypeMultiplier(move.type, defender.type1, defender.type2)
+    return Math.max(1, Math.floor(base * mult))
+  }
 
-    // Player's turn
-    const playerDamage = calculateDamage(selectedPokemon, opponentPokemon, move)
-    const typeMultiplier = getTypeMultiplier(move.type, opponentPokemon.type1, opponentPokemon.type2)
-    opponentPokemon.hp -= playerDamage
-    
-    let effectivenessMessage = ''
-    if (typeMultiplier > 1) {
-      effectivenessMessage = "It's super effective!"
-    } else if (typeMultiplier < 1) {
-      effectivenessMessage = "It's not very effective..."
-    }
-    
-    setBattleMessage(`${selectedPokemon.name} used ${move.name}! It dealt ${playerDamage} damage! ${effectivenessMessage}`)
+  const handleMoveSelect = useCallback((move: Move) => {
+    if (!playerPokemon || !opponentPokemon || !isPlayerTurn) return
 
-    // Check if opponent is defeated
-    if (opponentPokemon.hp <= 0) {
-      opponentPokemon.hp = 0
-      setGameOver(true)
-      setWinner(selectedPokemon)
+    setIsPlayerTurn(false)
+
+    const damage = calcDamage(playerPokemon, opponentPokemon, move)
+    const mult = getTypeMultiplier(move.type, opponentPokemon.type1, opponentPokemon.type2)
+    const effectiveness = mult > 1 ? " It's super effective!" : mult < 1 ? " It's not very effective..." : ''
+
+    const newOpponentHp = Math.max(0, opponentPokemon.hp - damage)
+    const updatedOpponent = { ...opponentPokemon, hp: newOpponentHp }
+    setOpponentPokemon(updatedOpponent)
+
+    const dmgMsg = damage > 0 ? `Dealt ${damage} damage!` : 'No effect!'
+    setBattleMessage(`${playerPokemon.name} used ${move.name}! ${dmgMsg}${effectiveness}`)
+
+    if (newOpponentHp <= 0) {
+      setWinner(playerPokemon)
+      setGameState('results')
       return
     }
 
-    // Opponent's turn
+    // Opponent turn after delay
     setTimeout(() => {
-      const opponentMove = opponentPokemon.moves[Math.floor(Math.random() * opponentPokemon.moves.length)]
-      const opponentDamage = calculateDamage(opponentPokemon, selectedPokemon, opponentMove)
-      const opponentTypeMultiplier = getTypeMultiplier(opponentMove.type, selectedPokemon.type1, selectedPokemon.type2)
-      selectedPokemon.hp -= opponentDamage
-      
-      let opponentEffectivenessMessage = ''
-      if (opponentTypeMultiplier > 1) {
-        opponentEffectivenessMessage = "It's super effective!"
-      } else if (opponentTypeMultiplier < 1) {
-        opponentEffectivenessMessage = "It's not very effective..."
-      }
-      
-      setBattleMessage(`${opponentPokemon.name} used ${opponentMove.name}! It dealt ${opponentDamage} damage! ${opponentEffectivenessMessage}`)
+      const opponentMove = updatedOpponent.moves[Math.floor(Math.random() * updatedOpponent.moves.length)]
+      const oppDamage = calcDamage(updatedOpponent, playerPokemon, opponentMove)
+      const oppMult = getTypeMultiplier(opponentMove.type, playerPokemon.type1, playerPokemon.type2)
+      const oppEffectiveness = oppMult > 1 ? " It's super effective!" : oppMult < 1 ? " It's not very effective..." : ''
 
-      // Check if player is defeated
-      if (selectedPokemon.hp <= 0) {
-        selectedPokemon.hp = 0
-        setGameOver(true)
-        setWinner(opponentPokemon)
+      const newPlayerHp = Math.max(0, playerPokemon.hp - oppDamage)
+      const updatedPlayer = { ...playerPokemon, hp: newPlayerHp }
+      setPlayerPokemon(updatedPlayer)
+
+      const oppDmgMsg = oppDamage > 0 ? `Dealt ${oppDamage} damage!` : 'No effect!'
+      setBattleMessage(`${updatedOpponent.name} used ${opponentMove.name}! ${oppDmgMsg}${oppEffectiveness}`)
+
+      if (newPlayerHp <= 0) {
+        setWinner(updatedOpponent)
+        setGameState('results')
       } else {
         setIsPlayerTurn(true)
       }
     }, 1500)
-  }
+  }, [playerPokemon, opponentPokemon, isPlayerTurn])
 
-  const calculateDamage = (attacker: Pokemon, defender: Pokemon, move: Move): number => {
-    const baseDamage = ((2 * attacker.level / 5 + 2) * move.power * attacker.attack / defender.defense) / 50 + 2
-    const typeMultiplier = getTypeMultiplier(move.type, defender.type1, defender.type2)
-    return Math.floor(baseDamage * typeMultiplier)
-  }
-
-  const getTypeMultiplier = (moveType: string, defenderType1: string, defenderType2?: string): number => {
-    const typeChart: { [key: string]: { [key: string]: number } } = {
-      Normal: { Rock: 0.5, Steel: 0.5, Ghost: 0 },
-      Fire: { Fire: 0.5, Water: 0.5, Grass: 2, Ice: 2, Bug: 2, Rock: 0.5, Dragon: 0.5, Steel: 2 },
-      Water: { Fire: 2, Water: 0.5, Grass: 0.5, Ground: 2, Rock: 2, Dragon: 0.5 },
-      Electric: { Water: 2, Grass: 0.5, Electric: 0.5, Ground: 0, Flying: 2, Dragon: 0.5 },
-      Grass: { Fire: 0.5, Water: 2, Grass: 0.5, Poison: 0.5, Ground: 2, Flying: 0.5, Bug: 0.5, Rock: 2, Dragon: 0.5 },
-      Ice: { Water: 0.5, Grass: 2, Ice: 0.5, Ground: 2, Flying: 2, Dragon: 2 },
-      Fighting: { Normal: 2, Ice: 2, Poison: 0.5, Flying: 0.5, Psychic: 0.5, Bug: 0.5, Rock: 2, Ghost: 0, Dragon: 2, Dark: 2, Steel: 2, Fairy: 0.5 },
-      Poison: { Grass: 2, Poison: 0.5, Ground: 0.5, Rock: 0.5, Ghost: 0.5, Steel: 0, Fairy: 2 },
-      Ground: { Fire: 2, Electric: 2, Grass: 0.5, Poison: 2, Flying: 0, Bug: 0.5, Rock: 2, Steel: 2 },
-      Flying: { Electric: 0.5, Grass: 2, Fighting: 2, Bug: 2, Rock: 0.5, Steel: 0.5 },
-      Psychic: { Fighting: 2, Poison: 2, Psychic: 0.5, Dark: 0, Steel: 0.5 },
-      Bug: { Fire: 0.5, Grass: 2, Fighting: 0.5, Poison: 0.5, Flying: 0.5, Psychic: 2, Ghost: 0.5, Dark: 2, Steel: 0.5, Fairy: 0.5 },
-      Rock: { Fire: 2, Ice: 2, Fighting: 0.5, Ground: 0.5, Flying: 2, Bug: 2, Steel: 0.5 },
-      Ghost: { Normal: 0, Psychic: 2, Ghost: 2, Dark: 0.5 },
-      Dragon: { Dragon: 2, Steel: 0.5, Fairy: 0 },
-      Dark: { Fighting: 0.5, Psychic: 2, Ghost: 2, Dark: 0.5, Fairy: 0.5 },
-      Steel: { Fire: 0.5, Water: 0.5, Electric: 0.5, Ice: 2, Rock: 2, Steel: 0.5, Fairy: 2 },
-      Fairy: { Fire: 0.5, Fighting: 2, Poison: 0.5, Dragon: 2, Dark: 2, Steel: 0.5 }
-    }
-
-    const multiplier1 = typeChart[moveType]?.[defenderType1] || 1
-    const multiplier2 = defenderType2 ? typeChart[moveType]?.[defenderType2] || 1 : 1
-    return multiplier1 * multiplier2
-  }
-
-  const handlePlayAgain = () => {
-    setSelectedPokemon(null)
+  const handlePlayAgain = useCallback(() => {
+    setPlayerPokemon(null)
     setOpponentPokemon(null)
     setBattleMessage('')
     setIsPlayerTurn(true)
-    setGameOver(false)
     setWinner(null)
-  }
+    setGameState('selection')
+  }, [])
 
   return (
     <AppContainer>
-      {!selectedPokemon ? (
+      {gameState === 'selection' && (
         <PokemonSelection
           pokemon={[
             getPokemonByName('Charmander'),
@@ -134,21 +129,23 @@ export const App: React.FC = () => {
             getPokemonByName('Squirtle'),
             getPokemonByName('Pikachu'),
             getPokemonByName('Abra'),
-            getPokemonByName('Geodude')
+            getPokemonByName('Geodude'),
           ]}
           onSelect={handlePokemonSelect}
         />
-      ) : gameOver && winner ? (
-        <BattleResults winner={winner} onPlayAgain={handlePlayAgain} />
-      ) : selectedPokemon && opponentPokemon ? (
+      )}
+      {gameState === 'battle' && playerPokemon && opponentPokemon && (
         <Battle
-          playerPokemon={selectedPokemon}
+          playerPokemon={playerPokemon}
           opponentPokemon={opponentPokemon}
           onMoveSelect={handleMoveSelect}
           battleMessage={battleMessage}
           isPlayerTurn={isPlayerTurn}
         />
-      ) : null}
+      )}
+      {gameState === 'results' && winner && (
+        <BattleResults winner={winner} onPlayAgain={handlePlayAgain} />
+      )}
     </AppContainer>
   )
 }
