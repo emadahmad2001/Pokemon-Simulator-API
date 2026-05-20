@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Pokemon, Move } from '../types/pokemon';
 
 const BattleContainer = styled.div`
