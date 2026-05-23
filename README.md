@@ -111,6 +111,8 @@ Currently implemented Pokemon:
 - Pikachu (Electric)
 - Abra (Psychic)
 - Geodude (Rock/Ground)
+- Gastly (Ghost/Poison)
+- Machop (Fighting)
 
 ## Contributing
 
