@@ -21,6 +21,12 @@ const moves: { [key: string]: Move } = {
   RockThrow:    { name: 'Rock Throw',    type: Type.ROCK,     power: 50,  accuracy: 90,  pp: 15, description: 'A rock hurled at the target.' },
   RockSlide:    { name: 'Rock Slide',    type: Type.ROCK,     power: 75,  accuracy: 90,  pp: 10, description: 'Large rocks flung at the foe.' },
   Magnitude:    { name: 'Magnitude',     type: Type.GROUND,   power: 70,  accuracy: 100, pp: 30, description: 'A ground-shaking attack.' },
+  Lick:        { name: 'Lick',         type: Type.GHOST,    power: 30,  accuracy: 100, pp: 30, description: 'A lick that may paralyze.' },
+  NightShade:  { name: 'Night Shade',  type: Type.GHOST,    power: 60,  accuracy: 100, pp: 15, description: 'Eerie shadows attack the foe.' },
+  SludgeBomb:  { name: 'Sludge Bomb',  type: Type.POISON,   power: 90,  accuracy: 100, pp: 10, description: 'Unsanitary sludge is hurled.' },
+  LowKick:     { name: 'Low Kick',     type: Type.FIGHTING, power: 50,  accuracy: 100, pp: 20, description: 'A kick that may cause flinching.' },
+  KarateChop:  { name: 'Karate Chop',  type: Type.FIGHTING, power: 50,  accuracy: 100, pp: 25, description: 'A chop with high crit ratio.' },
+  CrossChop:   { name: 'Cross Chop',   type: Type.FIGHTING, power: 100, accuracy: 80,  pp: 5,  description: 'Two forearms are crossed for a powerful chop.' },
 };
 
 const pokemonData: { [key: string]: Pokemon } = {
@@ -53,6 +59,16 @@ const pokemonData: { [key: string]: Pokemon } = {
     name: 'Geodude', level: 5, hp: 40, max_hp: 40,
     attack: 80, defense: 100, speed: 20, type1: Type.ROCK, type2: Type.GROUND,
     moves: [moves.Tackle, moves.RockThrow, moves.RockSlide, moves.Magnitude],
+  },
+  Gastly: {
+    name: 'Gastly', level: 5, hp: 30, max_hp: 30,
+    attack: 35, defense: 30, speed: 80, type1: Type.GHOST, type2: Type.POISON,
+    moves: [moves.Lick, moves.NightShade, moves.SludgeBomb, moves.Confusion],
+  },
+  Machop: {
+    name: 'Machop', level: 5, hp: 70, max_hp: 70,
+    attack: 80, defense: 50, speed: 35, type1: Type.FIGHTING,
+    moves: [moves.LowKick, moves.KarateChop, moves.CrossChop, moves.BodySlam2],
   },
 };
 

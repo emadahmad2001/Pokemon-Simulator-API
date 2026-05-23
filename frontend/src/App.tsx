@@ -130,6 +130,8 @@ export const App: React.FC = () => {
             getPokemonByName('Pikachu'),
             getPokemonByName('Abra'),
             getPokemonByName('Geodude'),
+            getPokemonByName('Gastly'),
+            getPokemonByName('Machop'),
           ]}
           onSelect={handlePokemonSelect}
         />
